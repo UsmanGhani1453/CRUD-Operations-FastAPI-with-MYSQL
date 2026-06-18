@@ -32,13 +32,13 @@ class Category(CategoryBase):
 class EmployeeBase(BaseModel):
     name: str
     email: str
-    category_id: int  # The user must provide the ID of the category they belong to
-
+    category_id: int  
 class EmployeeCreate(EmployeeBase):
     pass
 
 class Employee(EmployeeBase):
     id: int
+    owner_id: int  
 
     class Config:
         from_attributes = True
@@ -53,3 +53,7 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+# ------------------------------------------------------------------------------------
+class Token(BaseModel):
+    access_token: str
+    token_type: str
