@@ -3,6 +3,7 @@
 A secure, modular, and robust RESTful API built with FastAPI, SQLAlchemy (MySQL), and JWT Authentication.
 
 ## 🚀 Key Features
+
 * **Secure Authentication**: Industry-standard JWT-based login and password hashing using passlib.
 * **Modular Architecture**: Organized into separate routers for scalability and clean code.
 * **Data Ownership**: Full MySQL integration with Foreign Key relationships; every employee record is automatically linked to its owner to ensure data isolation.
@@ -10,6 +11,7 @@ A secure, modular, and robust RESTful API built with FastAPI, SQLAlchemy (MySQL)
 * **API Documentation**: Automatic, interactive Swagger UI documentation at /docs.
 
 ## 📁 Project Structure
+
 /
 ├── main.py              # Entry point & Router registration
 ├── dependencies.py      # Security logic (get_current_user)
@@ -26,13 +28,16 @@ A secure, modular, and robust RESTful API built with FastAPI, SQLAlchemy (MySQL)
 ## 🛠️ Setup Instructions
 
 ### 1. Install Dependencies
+
 Make sure you have your virtual environment activated, then run:
 pip install -r requirements.txt
 
 ### 2. Configure Database
+
 Update your MySQL credentials in database.py.
 
 ### 3. Run the API
+
 uvicorn main:app --reload
 
 ---
