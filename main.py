@@ -1,25 +1,19 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-
-# Local imports
 from database import engine, Base, get_db
 import models
 import schemas
+import security
 
-# Create database tables automatically
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 # ---------------------------CRUD Operations for Product table---------------------------------------------
 @app.post("/products/", response_model=schemas.Product,tags=["Products"])
 def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    # 1. Create the SQLAlchemy model instance
     db_product = models.Product(name=product.name, price=product.price)
-    # 2. Add it to the database session
     db.add(db_product)
-    # 3. Commit the transaction to save it
     db.commit()
-    # 4. Refresh to get the newly generated ID from MySQL
     db.refresh(db_product)
     return db_product
 
@@ -98,14 +92,10 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
     if db_category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    # Remove the record and save the changes
     db.delete(db_category)
     db.commit()
     return {"message": "Category deleted successfully"}
 # ---------------------------CRUD Operations for Employee table---------------------------------------------
-# ==========================================
-# EMPLOYEES
-# ==========================================
 @app.post("/employees/", response_model=schemas.Employee, tags=["Employees"])
 def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(get_db)):
     # 1. NEW: Check if the email is already taken
@@ -144,7 +134,6 @@ def update_employee(employee_id: int, employee: schemas.EmployeeCreate, db: Sess
     if db_employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
     
-    # Check if category exists before updating
     category = db.query(models.Category).filter(models.Category.id == employee.category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category ID does not exist.")
@@ -167,3 +156,19 @@ def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     db.delete(db_employee)
     db.commit()
     return {"message": "Employee deleted successfully"}
+# -------------------------------------------------------User Registration-----------------------
+@app.post("/users/",response_model=schemas.UserResponse,tags=["Users"])
+def create_user(user:schemas.UserCreate,db:Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=404, detail = "User already registered")
+    
+    hashed_pwd = security.get_password_hash(user.password)
+
+    db_user = models.User(email= user.email,hashed_password=hashed_pwd)
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user

@@ -25,3 +25,10 @@ class Employee(Base):
     email = Column(String(100), unique=True, nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"))
     category = relationship("Category", back_populates="employees")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer,primary_key=True,index=True)
+    email = Column(String(100), unique=True, nullable=False,index=True)
+    hashed_password = Column(String(255), nullable=False)
