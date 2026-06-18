@@ -22,7 +22,7 @@ Make sure you have your virtual environment activated, then run:
 ```bash
 
 pip install -r requirements.txt
-
+# ----------------------------------------------------------------------------------------
 ## 🌐 API Endpoints
 
 Here is a summary of the available routes. 
