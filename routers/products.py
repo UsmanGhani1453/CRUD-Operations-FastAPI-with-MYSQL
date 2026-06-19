@@ -4,7 +4,6 @@ from database import get_db
 from dependencies import get_current_user
 import models, schemas
 
-# The prefix here automatically handles the /products base path
 router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.post("/", response_model=schemas.Product)
@@ -19,7 +18,6 @@ def create_product(
     db.refresh(db_product)
     return db_product
 
-# Keep only one GET all function
 @router.get("/", response_model=list[schemas.Product])
 def read_products(
     skip: int = 0, 

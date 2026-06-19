@@ -4,7 +4,6 @@ from database import get_db
 from dependencies import get_current_user
 import models, schemas
 
-# 1. FIX: Change the prefix to match the entity (categories)
 router = APIRouter(prefix="/categories", tags=["Categories"])
     
 @router.post("/", response_model=schemas.Category)
