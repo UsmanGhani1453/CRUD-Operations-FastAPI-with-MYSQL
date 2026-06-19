@@ -1,19 +1,25 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import  HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import security
 from sqlalchemy.orm import Session
 from database import get_db
 import models
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+token_auth_scheme = HTTPBearer()
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(token_auth_scheme), 
+    db: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    token = credentials.credentials
+    
     try:
         payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
         email: str = payload.get("sub")
