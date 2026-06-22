@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey,JSON
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -9,6 +9,7 @@ class Product(Base):
     name = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
+    extra_data = Column(JSON, nullable=True) 
 
 class Category(Base):
     __tablename__ = "categories"
@@ -18,6 +19,7 @@ class Category(Base):
     description = Column(String(255), nullable=True)
     employees = relationship("Employee", back_populates="category")
     owner_id = Column(Integer, ForeignKey("users.id"))
+    extra_data = Column(JSON, nullable=True)
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -29,6 +31,7 @@ class Employee(Base):
     category = relationship("Category", back_populates="employees")
     owner_id = Column(Integer, ForeignKey("users.id"))
     Owner = relationship("User", back_populates="employees")
+    extra_data = Column(JSON, nullable=True)
 
 class User(Base):
     __tablename__ = "users"
@@ -37,3 +40,4 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False,index=True)
     hashed_password = Column(String(255), nullable=False)
     employees = relationship("Employee", back_populates="Owner")
+    extra_data = Column(JSON, nullable=True)

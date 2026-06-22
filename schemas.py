@@ -1,16 +1,15 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional,Any,Dict
 
 # Base properties shared across schemas
 class ProductBase(BaseModel):
     name: str
     price: int
-
-# Schema used for creating/updating a product (doesn't need an ID yet)
+    extra_data: Optional[Any] = None
+    
 class ProductCreate(ProductBase):
     pass
 
-# Schema used for returning a product from the database (includes the ID)
 class Product(ProductBase):
     id: int
     owner_id: int
@@ -21,9 +20,10 @@ class Product(ProductBase):
 class CategoryBase(BaseModel):
     name:str
     description: Optional[str] = None
-
+    extra_data: Optional[Any] = None
 class CategoryCreate(CategoryBase):
     pass
+
 class Category(CategoryBase):
     id:int 
     owner_id: int
@@ -35,6 +35,8 @@ class EmployeeBase(BaseModel):
     name: str
     email: str
     category_id: int  
+    extra_data: Optional[Any] = None
+
 class EmployeeCreate(EmployeeBase):
     pass
 
@@ -48,6 +50,7 @@ class Employee(EmployeeBase):
 class UserCreate(BaseModel):
     email:str
     password:str
+    extra_data: Optional[Any] = None
 
 class UserResponse(BaseModel):
     id:int
