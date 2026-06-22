@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 from dependencies import get_current_user
-import models, schemas
+import models, schemas, database
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
 
@@ -33,6 +34,13 @@ def read_employee(
         raise HTTPException(status_code=401, detail="Not authorized to access this employee")
         
     return employee
+
+@router.get("/search",response_model=list[schemas.Employee])
+def search_employee_extra_data(key:str,value:str,db: Session = Depends(database.get_db)):
+    results = db.query(models.Employee).filter(func.json_unquote(models.Employee.extra_data[key])==value).all()
+    if not results:
+        raise HTTPException(status_code=404,detail=f"No Employee found with {key} = {value}")
+    return results
 
 @router.put("/employees/{employee_id}", response_model=schemas.Employee, tags=["Employees"])
 def update_employee(
