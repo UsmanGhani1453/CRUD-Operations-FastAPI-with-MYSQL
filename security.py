@@ -19,4 +19,4 @@ def create_access_token(data: dict):
 
 SECRET_KEY = "Usman"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
