@@ -1,19 +1,5 @@
-# Environments
-venv/
-env/
-.venv/
-
-# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*$py.class
-
-# VS Code settings
-.vscode/
-*.code-workspace
-
-# Environment variables (Never upload your database passwords!)
+*.pyc
 .env
-
-# MacOS hidden files
-.DS_Store
+.venv/
+venv/
