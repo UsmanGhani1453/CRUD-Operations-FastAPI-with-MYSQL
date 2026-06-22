@@ -1,3 +1,5 @@
+from itertools import product
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
@@ -12,7 +14,7 @@ def create_category(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    db_category = models.Category(name=category.name, description=category.description)
+    db_category = models.Category(**category.dict(), owner_id=current_user.id)
     db.add(db_category)
     db.commit()
     db.refresh(db_category)

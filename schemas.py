@@ -13,6 +13,7 @@ class ProductCreate(ProductBase):
 # Schema used for returning a product from the database (includes the ID)
 class Product(ProductBase):
     id: int
+    owner_id: int
 
     class Config:
         from_attributes = True
@@ -25,7 +26,8 @@ class CategoryCreate(CategoryBase):
     pass
 class Category(CategoryBase):
     id:int 
-
+    owner_id: int
+    
     class Config:
         from_attributes = True
 # ---------------------------------------------------------------------

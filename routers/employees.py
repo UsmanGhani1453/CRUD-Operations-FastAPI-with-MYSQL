@@ -20,9 +20,9 @@ def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(get_
 
 @router.get("/employees/{employee_id}", response_model=schemas.Employee, tags=["Employees"])
 def read_employee(
-    employee_id: int,  # 1. Catch the ID from the URL
+    employee_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user) # Locked!
+    current_user: models.User = Depends(get_current_user)
 ):
     employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
     
@@ -30,7 +30,7 @@ def read_employee(
         raise HTTPException(status_code=404, detail="Employee not found")
         
     if bool(employee.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not authorized to access this employee")
+        raise HTTPException(status_code=401, detail="Not authorized to access this employee")
         
     return employee
 
@@ -46,6 +46,8 @@ def update_employee(
     if db_employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
     
+    if bool(db_employee.owner_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to modify this employee")
     category = db.query(models.Category).filter(models.Category.id == employee.category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category ID does not exist.")
@@ -68,7 +70,8 @@ def delete_employee(
     
     if db_employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
-    
+    if bool(db_employee.owner_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to modify this employee")
     db.delete(db_employee)
     db.commit()
     return {"message": "Employee deleted successfully"}

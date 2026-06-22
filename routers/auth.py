@@ -25,5 +25,5 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if not user or not security.verify_password(form_data.password, str(user.hashed_password)):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
-    access_token = security.create_access_token(data={"sub": user.email})
+    access_token = security.create_access_token(data={"sub": user.email,"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}

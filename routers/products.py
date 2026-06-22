@@ -12,7 +12,7 @@ def create_product(
     db: Session = Depends(get_db), 
     current_user: models.User = Depends(get_current_user)
 ):
-    db_product = models.Product(name=product.name, price=product.price)
+    db_product = models.Product(**product.dict(), owner_id=current_user.id)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)

@@ -8,6 +8,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True,unique=True, autoincrement=True, nullable=False)
     name = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"))
 
 class Category(Base):
     __tablename__ = "categories"
@@ -16,6 +17,7 @@ class Category(Base):
     name = Column(String(50), unique=True, index=True, nullable=False)
     description = Column(String(255), nullable=True)
     employees = relationship("Employee", back_populates="category")
+    owner_id = Column(Integer, ForeignKey("users.id"))
 
 class Employee(Base):
     __tablename__ = "employees"
