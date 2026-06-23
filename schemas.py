@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional,Any,Dict
-
-# Base properties shared across schemas
 class ProductBase(BaseModel):
     name: str
     price: int
