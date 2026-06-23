@@ -51,9 +51,10 @@ class UserCreate(BaseModel):
     extra_data: Optional[Any] = None
 
 class UserResponse(BaseModel):
-    id:int
-    email:str
-
+    id: int
+    email: str
+    is_verified: bool
+    
     class Config:
         from_attributes = True
 # ------------------------------------------------------------------------------------

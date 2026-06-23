@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey,JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -41,3 +41,4 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     employees = relationship("Employee", back_populates="Owner")
     extra_data = Column(JSON, nullable=True)
+    is_verified = Column(Boolean, default=False)
