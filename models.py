@@ -42,3 +42,4 @@ class User(Base):
     employees = relationship("Employee", back_populates="Owner")
     extra_data = Column(JSON, nullable=True)
     is_verified = Column(Boolean, default=False)
+    role = Column(String(50), default="customer")

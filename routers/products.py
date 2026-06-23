@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,status
 from sqlalchemy.orm import Session
 from database import get_db
 from dependencies import get_current_user
-import models, schemas
+import models, schemas,database
+from dependencies import get_current_admin
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -10,12 +11,14 @@ router = APIRouter(prefix="/products", tags=["Products"])
 def create_product(
     product: schemas.ProductCreate, 
     db: Session = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user)
+    admin_user: models.User = Depends(get_current_admin)
 ):
-    db_product = models.Product(**product.dict(), owner_id=current_user.id)
+    
+    db_product = models.Product(**product.model_dump(), owner_id=admin_user.id)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
+    
     return db_product
 
 @router.get("/", response_model=list[schemas.Product])
@@ -43,8 +46,8 @@ def update_product(
     product_id: int, 
     product: schemas.ProductCreate, 
     db: Session = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user)
-):
+    admin_user: models.User = Depends(get_current_admin)
+    ):
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -60,8 +63,8 @@ def update_product(
 def delete_product(
     product_id: int, 
     db: Session = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user)
-):
+    admin_user: models.User = Depends(get_current_admin)
+    ):
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")

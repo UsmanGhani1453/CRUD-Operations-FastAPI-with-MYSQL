@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException, Depends, status
 from fastapi.security import  HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import security
@@ -32,3 +32,10 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+def get_current_admin(current_user: models.User = Depends(get_current_user)):
+    if current_user.role != "admin":  # type: ignore
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have permission to perform this action. Admins only.")
+    return current_user
+    

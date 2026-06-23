@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from dependencies import get_current_user
 import models, schemas
+from dependencies import get_current_admin
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
     
@@ -12,9 +13,9 @@ router = APIRouter(prefix="/categories", tags=["Categories"])
 def create_category(
     category: schemas.CategoryCreate, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    admin_user: models.User = Depends(get_current_admin)
 ):
-    db_category = models.Category(**category.dict(), owner_id=current_user.id)
+    db_category = models.Category(**category.model_dump(), owner_id=admin_user.id)
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
@@ -34,7 +35,7 @@ def update_category(
     category_id: int, 
     category: schemas.CategoryCreate, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    admin_user: models.User = Depends(get_current_admin)
 ):
     db_category = db.query(models.Category).filter(models.Category.id == category_id).first()
     
@@ -52,7 +53,7 @@ def update_category(
 def delete_category(
     category_id: int, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    admin_user: models.User = Depends(get_current_admin)
 ):
     db_category = db.query(models.Category).filter(models.Category.id == category_id).first()
     
