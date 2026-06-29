@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String,Float, ForeignKey, JSON, Boolean,DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, JSON, Boolean, DateTime
+
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -10,7 +11,7 @@ class Product(Base):
     name = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
-    extra_data = Column(JSON, nullable=True) 
+    extra_data = Column(JSON, nullable=True)
 
 class Category(Base):
     __tablename__ = "categories"
