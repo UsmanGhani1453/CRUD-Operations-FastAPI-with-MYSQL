@@ -1,10 +1,11 @@
 import smtplib
+import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_verification_email(receiver_email:str,token:str):
-    sender_email = "usmanghanivhr1453@gmail.com"
-    sender_password = "watejilfykndtqrp"
+    sender_email = os.environ.get("usmanghanivhr1453@gmail.com")
+    sender_password = os.environ.get("watejilfykndtqrp","")
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "Verify Your HAAK Account"

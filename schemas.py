@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional,Any,Dict,List
 from datetime import datetime
 
@@ -6,6 +6,7 @@ class ProductBase(BaseModel):
     name: str
     price: int
     extra_data: Optional[Any] = None
+    stock: int 
     
 class ProductCreate(ProductBase):
     pass
@@ -33,7 +34,7 @@ class Category(CategoryBase):
 # ---------------------------------------------------------------------
 class EmployeeBase(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     category_id: int  
     extra_data: Optional[Any] = None
 
@@ -48,13 +49,13 @@ class Employee(EmployeeBase):
         from_attributes = True
 #----------------------------------------------------------------------
 class UserCreate(BaseModel):
-    email:str
+    email:EmailStr
     password:str
     extra_data: Optional[Any] = None
 
 class UserResponse(BaseModel):
     id: int
-    email: str
+    email: EmailStr
     is_verified: bool
     
     class Config:

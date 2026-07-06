@@ -1,6 +1,11 @@
 import jwt
+import os
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "Usman")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
 
@@ -24,7 +29,3 @@ def create_email_verification_token(email: str):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-SECRET_KEY = "Usman"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120

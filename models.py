@@ -12,6 +12,7 @@ class Product(Base):
     price = Column(Integer, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
     extra_data = Column(JSON, nullable=True)
+    stock = Column(Integer, nullable=False, default=0)
 
 class Category(Base):
     __tablename__ = "categories"
@@ -32,7 +33,7 @@ class Employee(Base):
     category_id = Column(Integer, ForeignKey("categories.id"))
     category = relationship("Category", back_populates="employees")
     owner_id = Column(Integer, ForeignKey("users.id"))
-    Owner = relationship("User", back_populates="employees")
+    owner = relationship("User", back_populates="employees")
     extra_data = Column(JSON, nullable=True)
 
 class User(Base):
@@ -41,7 +42,7 @@ class User(Base):
     id = Column(Integer,primary_key=True,index=True)
     email = Column(String(100), unique=True, nullable=False,index=True)
     hashed_password = Column(String(255), nullable=False)
-    employees = relationship("Employee", back_populates="Owner")
+    employees = relationship("Employee", back_populates="owner")
     extra_data = Column(JSON, nullable=True)
     is_verified = Column(Boolean, default=False)
     role = Column(String(50), default="customer")
