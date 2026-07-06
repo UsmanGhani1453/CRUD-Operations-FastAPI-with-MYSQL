@@ -63,7 +63,7 @@ Use the /login endpoint to receive your access_token. You must provide this toke
 *Request Body:*
 {
   "name": "Alice Smith",
-  "email": "alice@example.com",
+  "email": "alice@example.com",    #type:ignore
   "category_id": 1
 }
 
