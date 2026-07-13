@@ -55,4 +55,4 @@ def seed_database():
     
 if __name__ == "__main__":
     print("Starting database seed...")
-    seed_database()aa
+    seed_database()
