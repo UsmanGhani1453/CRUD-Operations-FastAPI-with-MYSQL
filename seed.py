@@ -52,6 +52,6 @@ def seed_database():
     finally:
         db.close()
     
-        if __name__ == "__main__":
-            print("Starting database seed...")
-            seed_database()
+if __name__ == "__main__":
+    print("Starting database seed...")
+    seed_database()
