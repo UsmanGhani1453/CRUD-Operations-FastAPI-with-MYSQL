@@ -1,9 +1,10 @@
-from database import SessionLocal
+from database import SessionLocal,engine,Base
 from models import User,Category,Product
 from security import get_password_hash
 
 def seed_database():
     db = SessionLocal()
+    Base.metadata.create_all(bind=engine)
     try:
         admin_email = "admin@haak.com"
         admin_user = db.query(User).filter(User.email == admin_email).first()
@@ -54,4 +55,4 @@ def seed_database():
     
 if __name__ == "__main__":
     print("Starting database seed...")
-    seed_database()
+    seed_database()aa
