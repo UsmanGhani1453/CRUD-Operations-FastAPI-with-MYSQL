@@ -56,7 +56,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    is_verified: bool
+    is_verified: Optional[bool] = False
     
     class Config:
         from_attributes = True
