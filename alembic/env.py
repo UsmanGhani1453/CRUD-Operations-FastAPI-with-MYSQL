@@ -3,6 +3,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from database import Base
+import config as app_config
 import models
 
 
@@ -14,6 +15,11 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Override the static value in alembic.ini with the same env-driven
+# DATABASE_URL the app itself uses, so migrations always run against the
+# real target database rather than a hardcoded local default.
+config.set_main_option("sqlalchemy.url", app_config.DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support

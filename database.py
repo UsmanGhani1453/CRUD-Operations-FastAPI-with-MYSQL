@@ -1,20 +1,22 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "mysql+pymysql://root:password@localhost:3306/my_database" 
-)
+import config
+
+SQLALCHEMY_DATABASE_URL = config.DATABASE_URL
 
 if SQLALCHEMY_DATABASE_URL.startswith("mysql://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("mysql://", "mysql+pymysql://", 1)
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "mysql://", "mysql+pymysql://", 1
+    )
 
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# pool_pre_ping avoids "MySQL server has gone away" errors on stale
+# connections (common with long-lived pools / serverless cold starts).
+engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()
