@@ -1,112 +1,71 @@
-# FastAPI + MySQL CRUD API (HAAK)
+# HAAK — Full-Stack CRUD App
 
-A secure, modular RESTful API built with FastAPI, SQLAlchemy (MySQL), and JWT authentication. Covers products, categories, employees, users, and orders (with stock tracking).
-
-## 🚀 Key Features
-
-* **Secure Authentication** — JWT-based login, bcrypt password hashing via passlib.
-* **Environment-driven config** — all secrets (DB URL, JWT secret, SMTP credentials) come from environment variables, never from source code. See `config.py` and `.env.example`.
-* **Fail-fast in production** — missing required config (e.g. `SECRET_KEY`) raises at startup in production instead of silently falling back to an insecure default.
-* **Role-based access control** — admin-only endpoints via `get_current_admin`; employee records are additionally scoped to their owning admin.
-* **Inventory-safe orders** — order creation validates and decrements product stock inside the same transaction (with row locking) to prevent overselling under concurrent requests.
-* **Modular architecture** — one router per resource.
-* **Interactive docs** — Swagger UI at `/docs`, ReDoc at `/redoc`.
-
-## 📁 Project Structure
+A leather-goods storefront + admin dashboard, built as two independently
+deployable projects sharing one repo:
 
 ```
-.
-├── main.py              # App entry point & router registration
-├── config.py            # Centralized, env-driven configuration (fail-fast)
-├── database.py          # SQLAlchemy engine/session setup
-├── dependencies.py      # Auth dependencies (get_current_user / get_current_admin)
-├── models.py            # SQLAlchemy ORM models
-├── schemas.py            # Pydantic request/response models (with validation)
-├── security.py          # Password hashing & JWT issuance
-├── email_utils.py       # Verification email sending (SMTP)
-├── seed.py               # Seeds an admin user, categories, and demo products
-├── alembic/              # DB migrations (reads DATABASE_URL from env)
-└── routers/
-    ├── auth.py           # Login
-    ├── users.py          # User creation (admin-only) & email verification
-    ├── products.py        # Product CRUD
-    ├── categories.py      # Category CRUD
-    ├── employees.py        # Employee CRUD (owner-scoped)
-    └── orders.py           # Order placement & status management
+haak-app/
+├── backend/     FastAPI + MySQL API (see backend/README.md)
+└── frontend/    React (Vite) storefront + admin UI (see frontend/README.md)
 ```
 
-## 🛠️ Setup
+Each has its own dependencies, its own `.env`, and its own README with
+full setup instructions. This file just covers how they fit together.
 
-### 1. Install dependencies
+## Quick start (local development)
+
+**1. Backend** — in one terminal:
 
 ```bash
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+cd backend
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 2. Configure environment variables
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env` with real values. At minimum for local development you'll want:
-
-- `DATABASE_URL` — your MySQL connection string
-- `SECRET_KEY` — generate with `python -c "import secrets; print(secrets.token_hex(32))"`
-- `SENDER_EMAIL` / `SENDER_PASSWORD` — only needed if you want verification emails to actually send (use a Gmail **App Password**, never your real account password)
-
-In development, missing values fall back to insecure defaults with a warning so you can get running quickly. **In production, set `ENVIRONMENT=production` and every required variable — the app will refuse to start otherwise.**
-
-> ⚠️ **Never commit `.env` or hardcode credentials in source.** `.env` is already in `.gitignore`.
-
-### 3. Run migrations
-
-```bash
+cp .env.example .env        # then edit DATABASE_URL and SECRET_KEY
 alembic upgrade head
-```
-
-### 4. (Optional) Seed demo data
-
-```bash
 python seed.py
+uvicorn app.main:app --reload
 ```
 
-Creates an admin user (`SEED_ADMIN_EMAIL`, default `admin@haak.com`). If `SEED_ADMIN_PASSWORD` isn't set, a random one-time password is generated and printed — change it after first login.
+Runs on `http://127.0.0.1:8000`.
 
-### 5. Run the API
+**2. Frontend** — in a second terminal:
 
 ```bash
-uvicorn main:app --reload
+cd frontend
+npm install
+cp .env.example .env.local  # VITE_API_URL should already point at :8000
+npm run dev
 ```
 
----
+Runs on `http://localhost:5173`.
 
-## 🌐 API Endpoints
+**3. Connect them**: make sure the frontend's dev port is in the backend's
+`CORS_ALLOWED_ORIGINS` (in `backend/.env`):
 
-| Resource | Method | Endpoint | Auth |
-| :--- | :--- | :--- | :--- |
-| Auth | POST | `/login` | — |
-| Users | POST | `/users/` | Admin |
-| Users | GET | `/users/verify?token=...` | — |
-| Users | GET | `/users/me` | User |
-| Products | POST/GET | `/products/` | Admin (POST) / User (GET) |
-| Products | GET/PUT/DELETE | `/products/{id}` | User (GET) / Admin (PUT/DELETE) |
-| Categories | POST/GET | `/categories/` | Admin (POST) / User (GET) |
-| Categories | PUT/DELETE | `/categories/{id}` | Admin |
-| Employees | POST | `/employees/` | Admin |
-| Employees | GET | `/employees/search?key=&value=` | User |
-| Employees | GET/PUT/DELETE | `/employees/{id}` | Owner-scoped |
-| Orders | POST/GET | `/orders/` | User |
-| Orders | GET | `/orders/all` | Admin |
-| Orders | PUT | `/orders/{id}/status` | Admin |
+```
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
 
----
+Restart the backend after changing `.env`.
 
-## 🔒 Security notes
+Then open `http://localhost:5173`, log in with the admin credentials
+`seed.py` printed, and you're in.
 
-- Passwords are hashed with bcrypt via passlib; never stored or logged in plaintext.
-- JWTs are signed with `SECRET_KEY` from the environment; there is no static fallback secret in production.
-- CORS origins are configurable via `CORS_ALLOWED_ORIGINS` rather than hardcoded.
-- Order creation uses `SELECT ... FOR UPDATE` on the product row to prevent race conditions from overselling stock.
+## Why two top-level folders instead of one
+
+Backend and frontend have different runtimes, dependency managers, and
+lifecycles (you'll redeploy the frontend far more often than the backend
+schema changes). Keeping them as siblings with their own README, `.env`,
+and lockfile means either one can be handed to a different developer, put
+in its own CI pipeline, or deployed to a different host without dragging
+the other along.
+
+## Where to look for what
+
+| Question | See |
+| :--- | :--- |
+| How is the API organized? What's in `app/models` vs `app/schemas`? | `backend/README.md` |
+| How do I add a new backend endpoint? | Add a route in `backend/app/api/routes/`, a schema in `backend/app/schemas/`, wire it into `backend/app/main.py` |
+| How is the frontend organized? | `frontend/README.md` |
+| How do I add a new page? | Add a component in `frontend/src/pages/`, register the route in `frontend/src/App.jsx` |
+| How do I deploy this for real? | `frontend/README.md` → "Deploying" section |

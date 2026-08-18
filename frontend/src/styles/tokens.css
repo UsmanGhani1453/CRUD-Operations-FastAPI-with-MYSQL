@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  /* --- Palette: HAAK is a leather-goods house. Ink-dark ground, warm
+     brass accent (not the common AI clay/terracotta), aged-ivory text. --- */
+  --ink-950: #100e0c;
+  --ink-900: #17140f;
+  --ink-800: #201c17;
+  --ink-700: #2b251e;
+  --ink-600: #3a332a;
+  --hairline: #3a332a;
+
+  --ivory: #ece5d6;
+  --ivory-dim: #b7ac97;
+  --ivory-faint: #8b8072;
+
+  --brass: #c19a4e;
+  --brass-strong: #d9b268;
+  --brass-ink: #100e0c;
+
+  --clay: #a6493b;
+  --moss: #6f8f6a;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --shadow-lift: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
+  --content-max: 1180px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ink-950);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em;
+  color: var(--ivory);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--brass);
+  color: var(--brass-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-strong);
+  outline-offset: 2px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.container {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 32px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 18px;
+  }
+}
