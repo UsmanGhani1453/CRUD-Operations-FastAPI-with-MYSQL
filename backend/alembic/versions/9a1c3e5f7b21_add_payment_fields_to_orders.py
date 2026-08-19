@@ -1,4 +1,4 @@
-"""add payment fields to orders
+"""add payment status to orders
 
 Revision ID: 9a1c3e5f7b21
 Revises: 2781b989da10
@@ -23,20 +23,8 @@ def upgrade() -> None:
         "orders",
         sa.Column("payment_status", sa.String(length=20), nullable=False, server_default="unpaid"),
     )
-    op.add_column(
-        "orders",
-        sa.Column("stripe_payment_intent_id", sa.String(length=255), nullable=True),
-    )
-    op.create_index(
-        "ix_orders_stripe_payment_intent_id",
-        "orders",
-        ["stripe_payment_intent_id"],
-        unique=True,
-    )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index("ix_orders_stripe_payment_intent_id", table_name="orders")
-    op.drop_column("orders", "stripe_payment_intent_id")
     op.drop_column("orders", "payment_status")

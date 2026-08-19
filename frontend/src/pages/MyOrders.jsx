@@ -9,7 +9,7 @@ import PaymentStatusBadge from "../components/PaymentStatusBadge";
 
 export default function MyOrders() {
   const location = useLocation();
-  const { justPlacedId, paymentConfirmed, paymentSkipped } = location.state || {};
+  const { justPlacedId } = location.state || {};
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,21 +26,9 @@ export default function MyOrders() {
       <span className="eyebrow">Order history</span>
       <h1 style={{ fontSize: 30 }}>My orders</h1>
 
-      {justPlacedId && paymentConfirmed && (
+      {justPlacedId && (
         <div className="alert alert-success">
-          Order #{justPlacedId} placed and paid successfully.
-        </div>
-      )}
-      {justPlacedId && paymentConfirmed === false && (
-        <div className="alert alert-success">
-          Order #{justPlacedId} placed — payment is still processing and
-          will update shortly.
-        </div>
-      )}
-      {justPlacedId && paymentSkipped && (
-        <div className="alert alert-success">
-          Order #{justPlacedId} placed successfully. (Payments aren't
-          configured on this server yet, so no charge was made.)
+          Order #{justPlacedId} placed successfully.
         </div>
       )}
       {error && <div className="alert alert-error">{error}</div>}

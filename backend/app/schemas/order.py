@@ -1,6 +1,6 @@
 from enum import Enum
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -37,16 +37,6 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 
-class OrderWithPaymentResponse(OrderResponse):
-    """
-    Returned only from order creation. `client_secret` is the Stripe
-    PaymentIntent client secret the frontend needs to collect card details
-    and confirm the charge - it's short-lived and tied to this one intent,
-    safe to expose to the browser (that's what it's designed for).
-    """
-    client_secret: Optional[str] = None
-
-
 class OrderStatus(str, Enum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
@@ -57,3 +47,12 @@ class OrderStatus(str, Enum):
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class PaymentStatus(str, Enum):
+    UNPAID = "unpaid"
+    PAID = "paid"
+
+
+class PaymentStatusUpdate(BaseModel):
+    payment_status: PaymentStatus

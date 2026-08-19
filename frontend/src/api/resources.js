@@ -103,3 +103,7 @@ export function fetchAllOrders(params = {}) {
 export function updateOrderStatus(id, status) {
   return api.put(`/orders/${id}/status`, { status }).then((res) => res.data);
 }
+
+export function updatePaymentStatus(id, payment_status) {
+  return api.put(`/orders/${id}/payment`, { payment_status }).then((res) => res.data);
+}

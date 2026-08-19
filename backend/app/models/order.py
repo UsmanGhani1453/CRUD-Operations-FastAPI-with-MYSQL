@@ -18,8 +18,9 @@ class Order(Base):
     # Payment tracking. payment_status is separate from `status` (order
     # fulfillment) on purpose - an order can be PENDING fulfillment while
     # already "paid", or CANCELLED after being paid (needing a refund).
+    # There's no online payment integration - orders are paid manually
+    # (e.g. cash/transfer on delivery) and an admin marks them "paid".
     payment_status = Column(String(20), default="unpaid", nullable=False)
-    stripe_payment_intent_id = Column(String(255), nullable=True, unique=True, index=True)
 
     owner = relationship("User")
     items = relationship("OrderItem", back_populates="order", cascade="all,delete-orphan")

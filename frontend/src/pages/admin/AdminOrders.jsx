@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAllOrders, updateOrderStatus } from "../../api/resources";
+import { fetchAllOrders, updateOrderStatus, updatePaymentStatus } from "../../api/resources";
 import { extractErrorMessage } from "../../api/client";
 import { formatMoney } from "../../utils/money";
 import { PageSpinner } from "../../components/RouteGuards";
@@ -23,6 +23,18 @@ export default function AdminOrders() {
   }
 
   useEffect(load, []);
+
+  async function handlePaymentStatusChange(order, payment_status) {
+    setUpdatingId(order.id);
+    try {
+      const updated = await updatePaymentStatus(order.id, payment_status);
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    } catch (err) {
+      alert(extractErrorMessage(err, "Couldn't update payment status."));
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   async function handleStatusChange(order, status) {
     setUpdatingId(order.id);
@@ -74,7 +86,25 @@ export default function AdminOrders() {
                     <td>{formatMoney(order.total_price)}</td>
                     <td>{new Date(order.created_at).toLocaleDateString()}</td>
                     <td>
-                      <PaymentStatusBadge status={order.payment_status} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <PaymentStatusBadge status={order.payment_status} />
+                        <select
+                          value={order.payment_status}
+                          disabled={updatingId === order.id}
+                          onChange={(e) => handlePaymentStatusChange(order, e.target.value)}
+                          style={{
+                            background: "var(--ink-900)",
+                            border: "1px solid var(--ink-600)",
+                            color: "var(--ivory)",
+                            borderRadius: 3,
+                            padding: "5px 8px",
+                            fontSize: 12.5,
+                          }}
+                        >
+                          <option value="unpaid">unpaid</option>
+                          <option value="paid">paid</option>
+                        </select>
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

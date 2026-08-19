@@ -7,12 +7,11 @@ from app.models.product import Product
 from app import schemas
 from app.db.session import get_db
 from app.api.deps import get_current_user, get_current_admin
-from app.services import payments
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
-@router.post("/", response_model=schemas.OrderWithPaymentResponse)
+@router.post("/", response_model=schemas.OrderResponse)
 def create_order(
     order: schemas.OrderCreate,
     db: Session = Depends(get_db),
@@ -70,29 +69,13 @@ def create_order(
 
     new_order.total_price = running_total  # type: ignore
 
-    # Create the Stripe PaymentIntent up front. The order and its stock
-    # decrement commit either way; client_secret is what the frontend uses
-    # to collect card details on the next screen. If Stripe isn't
-    # configured on this server, the order still goes through as "unpaid"
-    # rather than blocking checkout entirely.
-    client_secret = None
-    try:
-        intent = payments.create_payment_intent(running_total, new_order.id)
-        new_order.stripe_payment_intent_id = intent.id  # type: ignore
-        client_secret = intent.client_secret
-    except HTTPException as exc:
-        if exc.status_code != 503:
-            db.rollback()
-            raise
-        # Payments not configured - proceed without one. Order stays
-        # "unpaid"; an admin can still see/fulfill it manually.
-
+    # No online payment integration - the order is placed as "unpaid" and
+    # gets paid manually (e.g. cash/transfer on delivery). An admin marks
+    # it "paid" later via PUT /orders/{id}/payment.
     db.commit()
     db.refresh(new_order)
 
-    response = schemas.OrderWithPaymentResponse.model_validate(new_order)
-    response.client_secret = client_secret
-    return response
+    return new_order
 
 
 @router.get("/", response_model=list[schemas.OrderResponse])
@@ -120,9 +103,7 @@ def get_order(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Used by the frontend's payment/confirmation screen to poll for the
-    webhook having flipped payment_status to "paid" after Stripe confirms
-    the charge.
+    Used by the frontend's order history screen.
     """
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -143,6 +124,27 @@ def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     order.status = status_update.status  # type: ignore
+    db.commit()
+    db.refresh(order)
+
+    return order
+
+
+@router.put("/{order_id}/payment", response_model=schemas.OrderResponse)
+def update_payment_status(
+    order_id: int,
+    payment_update: schemas.PaymentStatusUpdate,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin),
+):
+    """
+    Manually mark an order as paid/unpaid (e.g. cash or bank transfer on
+    delivery, confirmed by an admin) - there's no online payment provider.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    order.payment_status = payment_update.payment_status.value  # type: ignore
     db.commit()
     db.refresh(order)
 

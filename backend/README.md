@@ -52,7 +52,6 @@ Edit `.env`:
 - `DATABASE_URL` — your MySQL connection string
 - `SECRET_KEY` — generate with `python -c "import secrets; print(secrets.token_hex(32))"`
 - `SENDER_EMAIL` / `SENDER_PASSWORD` — optional locally (use a Gmail **App Password**, never your real password)
-- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — optional; if unset, checkout still works but skips payment (orders stay `unpaid`). See "Payments" below to enable real payments.
 
 In development, missing values fall back to insecure defaults with a
 warning. **Set `ENVIRONMENT=production` and every required variable before
@@ -72,36 +71,12 @@ python seed.py
 `admin@haak.com`). If `SEED_ADMIN_PASSWORD` isn't set, a random one-time
 password is generated and printed.
 
-## Payments (Stripe)
+## Payments
 
-Checkout creates a Stripe PaymentIntent when an order is placed and returns
-its `client_secret` for the frontend to collect card details. **Payment
-confirmation is handled by a webhook, not the browser** — a closed tab or
-network blip on the client side can't fake a paid order.
-
-1. Create a free Stripe account, stay in **test mode**.
-2. Get your test secret key from https://dashboard.stripe.com/test/apikeys
-   and set `STRIPE_SECRET_KEY` in `.env`.
-3. For local development, install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
-   and run:
-   ```bash
-   stripe listen --forward-to localhost:8000/webhooks/stripe
-   ```
-   It prints a webhook signing secret (`whsec_...`) — put that in
-   `STRIPE_WEBHOOK_SECRET`. Keep this command running alongside `uvicorn`
-   while you test checkout locally; without it, `payment_intent.succeeded`
-   events never reach your backend and orders stay `payment_status: unpaid`
-   even after a successful card charge.
-4. Test card number `4242 4242 4242 4242`, any future expiry, any CVC.
-5. **Going live**: switch to live keys in the Stripe Dashboard, set
-   `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` to the live versions, and
-   add a webhook endpoint pointing at your deployed backend's
-   `/webhooks/stripe` URL in the Stripe Dashboard (the CLI `listen` command
-   is dev-only). No code changes needed.
-
-If `STRIPE_SECRET_KEY` is left unset, orders still go through — they're
-just marked `unpaid` and the frontend skips straight to the order
-confirmation screen. Useful while you're still setting the rest of the app up.
+There's no online payment provider. Orders are created with
+`payment_status: unpaid`, and an admin marks them `paid` manually (e.g.
+after a cash or bank transfer on delivery) via `PUT /orders/{id}/payment`
+or the admin orders page in the frontend.
 
 ## Run the API
 
@@ -133,7 +108,7 @@ Docs at `http://127.0.0.1:8000/docs`.
 | Orders | GET | `/orders/all` | Admin |
 | Orders | GET | `/orders/{id}` | Owner or Admin |
 | Orders | PUT | `/orders/{id}/status` | Admin |
-| Webhooks | POST | `/webhooks/stripe` | Stripe only (signature-verified) |
+| Orders | PUT | `/orders/{id}/payment` | Admin |
 
 ## Security notes
 

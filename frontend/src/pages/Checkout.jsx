@@ -22,18 +22,9 @@ export default function Checkout() {
       const order = await createOrder(items);
       clear();
 
-      if (order.client_secret) {
-        // Normal path: backend has Stripe configured, hand off to the
-        // payment page with the fresh client_secret via router state.
-        navigate(`/payment/${order.id}`, {
-          state: { order, clientSecret: order.client_secret },
-        });
-      } else {
-        // Stripe isn't configured on this backend (e.g. still in local
-        // setup) - the order still went through as "unpaid", so don't
-        // block the user on a payment form that can't work.
-        navigate("/orders", { state: { justPlacedId: order.id, paymentSkipped: true } });
-      }
+      // No online payment - the order is placed as "unpaid" and settled
+      // manually (e.g. cash/transfer on delivery).
+      navigate("/orders", { state: { justPlacedId: order.id } });
     } catch (err) {
       // Most likely cause: stock changed between browsing and checkout
       // (the backend re-validates and locks stock at order time).
@@ -95,7 +86,7 @@ export default function Checkout() {
         onClick={placeOrder}
         disabled={submitting}
       >
-        {submitting ? "Placing order…" : "Continue to payment"}
+        {submitting ? "Placing order…" : "Place order"}
       </button>
     </div>
   );
