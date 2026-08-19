@@ -133,7 +133,6 @@ def update_order_status(
 @router.put("/{order_id}/payment", response_model=schemas.OrderResponse)
 def update_payment_status(
     order_id: int,
-    payment_update: schemas.PaymentStatusUpdate,
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin),
 ):
