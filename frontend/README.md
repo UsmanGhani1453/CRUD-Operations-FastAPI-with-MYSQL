@@ -42,10 +42,17 @@ Edit `.env.local`:
 
 ```
 VITE_API_URL=http://127.0.0.1:8000
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
-This must be the full base URL of your running FastAPI backend (no trailing
-slash). For a deployed backend, use its public HTTPS URL.
+`VITE_API_URL` must be the full base URL of your running FastAPI backend
+(no trailing slash).
+
+`VITE_STRIPE_PUBLISHABLE_KEY` is your Stripe **publishable** key (safe to
+expose in the browser — from the same Stripe account/mode as the backend's
+`STRIPE_SECRET_KEY`). If you leave this out, checkout still works but the
+payment step is skipped (matches the backend's behavior when Stripe isn't
+configured there either).
 
 ## 2. Run locally
 

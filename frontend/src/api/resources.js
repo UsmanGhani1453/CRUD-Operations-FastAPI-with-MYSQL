@@ -88,6 +88,10 @@ export function createOrder(items) {
   return api.post("/orders/", { items }).then((res) => res.data);
 }
 
+export function fetchOrder(id) {
+  return api.get(`/orders/${id}`).then((res) => res.data);
+}
+
 export function fetchMyOrders() {
   return api.get("/orders/").then((res) => res.data);
 }

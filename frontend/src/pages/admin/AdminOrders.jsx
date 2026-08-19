@@ -4,6 +4,7 @@ import { extractErrorMessage } from "../../api/client";
 import { formatMoney } from "../../utils/money";
 import { PageSpinner } from "../../components/RouteGuards";
 import StatusBadge from "../../components/StatusBadge";
+import PaymentStatusBadge from "../../components/PaymentStatusBadge";
 
 const STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
 
@@ -54,6 +55,7 @@ export default function AdminOrders() {
                 <th>Items</th>
                 <th>Total</th>
                 <th>Placed</th>
+                <th>Payment</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -71,6 +73,9 @@ export default function AdminOrders() {
                     </td>
                     <td>{formatMoney(order.total_price)}</td>
                     <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <PaymentStatusBadge status={order.payment_status} />
+                    </td>
                     <td>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <StatusBadge status={order.status} />
@@ -99,7 +104,7 @@ export default function AdminOrders() {
                 ))}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", color: "var(--ivory-faint)" }}>
+                  <td colSpan={7} style={{ textAlign: "center", color: "var(--ivory-faint)" }}>
                     No orders yet.
                   </td>
                 </tr>

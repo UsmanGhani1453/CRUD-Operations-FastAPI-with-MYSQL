@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -7,11 +7,12 @@ from app.models.product import Product
 from app import schemas
 from app.db.session import get_db
 from app.api.deps import get_current_user, get_current_admin
+from app.services import payments
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
-@router.post("/", response_model=schemas.OrderResponse)
+@router.post("/", response_model=schemas.OrderWithPaymentResponse)
 def create_order(
     order: schemas.OrderCreate,
     db: Session = Depends(get_db),
@@ -68,10 +69,30 @@ def create_order(
         running_total += product.price * item.quantity  # type: ignore
 
     new_order.total_price = running_total  # type: ignore
+
+    # Create the Stripe PaymentIntent up front. The order and its stock
+    # decrement commit either way; client_secret is what the frontend uses
+    # to collect card details on the next screen. If Stripe isn't
+    # configured on this server, the order still goes through as "unpaid"
+    # rather than blocking checkout entirely.
+    client_secret = None
+    try:
+        intent = payments.create_payment_intent(running_total, new_order.id)
+        new_order.stripe_payment_intent_id = intent.id  # type: ignore
+        client_secret = intent.client_secret
+    except HTTPException as exc:
+        if exc.status_code != 503:
+            db.rollback()
+            raise
+        # Payments not configured - proceed without one. Order stays
+        # "unpaid"; an admin can still see/fulfill it manually.
+
     db.commit()
     db.refresh(new_order)
 
-    return new_order
+    response = schemas.OrderWithPaymentResponse.model_validate(new_order)
+    response.client_secret = client_secret
+    return response
 
 
 @router.get("/", response_model=list[schemas.OrderResponse])
@@ -90,6 +111,25 @@ def get_all_orders(
     admin_user: User = Depends(get_current_admin),
 ):
     return db.query(Order).offset(skip).limit(limit).all()
+
+
+@router.get("/{order_id}", response_model=schemas.OrderResponse)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Used by the frontend's payment/confirmation screen to poll for the
+    webhook having flipped payment_status to "paid" after Stripe confirms
+    the charge.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if bool(order.user_id != current_user.id) and current_user.role != "admin":  # type: ignore
+        raise HTTPException(status_code=403, detail="Not authorized to view this order")
+    return order
 
 
 @router.put("/{order_id}/status", response_model=schemas.OrderResponse)

@@ -6,6 +6,7 @@ import { RequireAuth, RequireAdmin } from "./components/RouteGuards";
 import Storefront from "./pages/Storefront";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
+import Payment from "./pages/Payment";
 import MyOrders from "./pages/MyOrders";
 
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -31,6 +32,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <Checkout />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/payment/:orderId"
+            element={
+              <RequireAuth>
+                <Payment />
               </RequireAuth>
             }
           />

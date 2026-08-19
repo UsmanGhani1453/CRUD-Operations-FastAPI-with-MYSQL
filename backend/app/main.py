@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import CORS_ALLOWED_ORIGINS
-from app.api.routes import auth, users, products, categories, employees, orders
+from app.api.routes import auth, users, products, categories, employees, orders, webhooks
 
 app = FastAPI(title="HAAK CRUD API")
 
@@ -20,6 +20,7 @@ app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(employees.router)
 app.include_router(orders.router)
+app.include_router(webhooks.router)
 
 
 @app.get("/health", tags=["Health"])

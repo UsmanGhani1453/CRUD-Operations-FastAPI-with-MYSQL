@@ -80,3 +80,15 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_origins).split(",")
     if origin.strip()
 ]
+
+# --- Payments (Stripe) ---------------------------------------------------------
+# STRIPE_SECRET_KEY: server-side only, starts with sk_test_/sk_live_.
+# STRIPE_WEBHOOK_SECRET: from your Stripe Dashboard webhook endpoint (or
+#   `stripe listen` in dev), starts with whsec_. Used to verify that
+#   webhook requests really came from Stripe.
+# Both are optional at import time (checkout/webhook routes raise a clear
+# 503 if a request needs them and they're missing), so the rest of the API
+# still runs without Stripe configured.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+CURRENCY = os.getenv("CURRENCY", "usd")

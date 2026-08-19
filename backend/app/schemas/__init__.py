@@ -12,6 +12,7 @@ from app.schemas.order import (
     OrderCreate,
     OrderItemResponse,
     OrderResponse,
+    OrderWithPaymentResponse,
     OrderStatus,
     OrderStatusUpdate,
 )
@@ -22,5 +23,5 @@ __all__ = [
     "EmployeeBase", "EmployeeCreate", "Employee",
     "UserCreate", "UserResponse", "Token",
     "OrderItemCreate", "OrderCreate", "OrderItemResponse", "OrderResponse",
-    "OrderStatus", "OrderStatusUpdate",
+    "OrderWithPaymentResponse", "OrderStatus", "OrderStatusUpdate",
 ]

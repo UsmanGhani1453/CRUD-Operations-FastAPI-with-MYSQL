@@ -5,10 +5,11 @@ import { extractErrorMessage } from "../api/client";
 import { formatMoney } from "../utils/money";
 import { PageSpinner } from "../components/RouteGuards";
 import StatusBadge from "../components/StatusBadge";
+import PaymentStatusBadge from "../components/PaymentStatusBadge";
 
 export default function MyOrders() {
   const location = useLocation();
-  const justPlacedId = location.state?.justPlacedId;
+  const { justPlacedId, paymentConfirmed, paymentSkipped } = location.state || {};
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,9 +26,21 @@ export default function MyOrders() {
       <span className="eyebrow">Order history</span>
       <h1 style={{ fontSize: 30 }}>My orders</h1>
 
-      {justPlacedId && (
+      {justPlacedId && paymentConfirmed && (
         <div className="alert alert-success">
-          Order #{justPlacedId} placed successfully.
+          Order #{justPlacedId} placed and paid successfully.
+        </div>
+      )}
+      {justPlacedId && paymentConfirmed === false && (
+        <div className="alert alert-success">
+          Order #{justPlacedId} placed — payment is still processing and
+          will update shortly.
+        </div>
+      )}
+      {justPlacedId && paymentSkipped && (
+        <div className="alert alert-success">
+          Order #{justPlacedId} placed successfully. (Payments aren't
+          configured on this server yet, so no charge was made.)
         </div>
       )}
       {error && <div className="alert alert-error">{error}</div>}
@@ -60,7 +73,10 @@ export default function MyOrders() {
                     {new Date(order.created_at).toLocaleString()}
                   </div>
                 </div>
-                <StatusBadge status={order.status} />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <PaymentStatusBadge status={order.payment_status} />
+                  <StatusBadge status={order.status} />
+                </div>
               </div>
 
               {order.items.map((item) => (

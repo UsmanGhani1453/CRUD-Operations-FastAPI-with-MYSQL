@@ -28,6 +28,11 @@ uvicorn app.main:app --reload
 
 Runs on `http://127.0.0.1:8000`.
 
+Checkout works without any Stripe setup (orders are just marked `unpaid`).
+To take real test payments, see "Payments (Stripe)" in `backend/README.md`
+— you'll set `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET` there and
+`VITE_STRIPE_PUBLISHABLE_KEY` in the frontend's `.env.local`.
+
 **2. Frontend** — in a second terminal:
 
 ```bash
