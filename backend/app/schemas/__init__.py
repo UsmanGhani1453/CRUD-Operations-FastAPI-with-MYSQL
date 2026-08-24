@@ -14,6 +14,10 @@ from app.schemas.order import (
     OrderResponse,
     OrderStatus,
     OrderStatusUpdate,
+    PaymentStatus,
+    PaymentStatusUpdate,
+    SafepayConfig,
+    SafepayConfirmRequest,
 )
 
 __all__ = [
@@ -23,4 +27,5 @@ __all__ = [
     "UserCreate", "UserResponse", "Token",
     "OrderItemCreate", "OrderCreate", "OrderItemResponse", "OrderResponse",
     "OrderStatus", "OrderStatusUpdate",
+    "PaymentStatus", "PaymentStatusUpdate", "SafepayConfig", "SafepayConfirmRequest",
 ]
