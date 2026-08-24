@@ -80,9 +80,8 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_origins).split(",")
     if origin.strip()
 ]
-
 # --- Currency ---------------------------------------------------------
-CURRENCY = os.getenv("CURRENCY", "usd")
+CURRENCY = os.getenv("CURRENCY", "PKR")
 
 # --- Frontend (used to build Safepay redirect/cancel URLs) -------------
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://127.0.0.1:5500")

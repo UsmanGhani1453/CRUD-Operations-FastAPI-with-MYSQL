@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
-
+import httpx
 from app.core.config import (
     CURRENCY,
+    FRONTEND_BASE_URL,
     SAFEPAY_API_KEY,
     SAFEPAY_ENVIRONMENT,
+    SAFEPAY_SECRET_KEY,
+    SAFEPAY_API_BASE_URL
 )
 from app.models.user import User
 from app.models.order import Order, OrderItem
@@ -74,10 +77,6 @@ def create_order(
         running_total += product.price * item.quantity  # type: ignore
 
     new_order.total_price = running_total  # type: ignore
-
-    # No online payment integration - the order is placed as "unpaid" and
-    # gets paid manually (e.g. cash/transfer on delivery). An admin marks
-    # it "paid" later via PUT /orders/{id}/payment.
     db.commit()
     db.refresh(new_order)
 
@@ -108,9 +107,6 @@ def get_order(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Used by the frontend's order history screen.
-    """
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -132,7 +128,6 @@ def update_order_status(
     order.status = status_update.status  # type: ignore
     db.commit()
     db.refresh(order)
-
     return order
 
 
@@ -143,31 +138,17 @@ def update_payment_status(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin),
 ):
-    """
-    Manually mark an order as paid/unpaid (e.g. cash or bank transfer on
-    delivery, confirmed by an admin). For online payments via Safepay,
-    see POST /orders/{id}/checkout and the /orders/webhook/safepay
-    webhook below, which mark orders paid automatically.
-    """
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     order.payment_status = payment_update.payment_status.value  # type: ignore
     db.commit()
     db.refresh(order)
-
     return order
 
 
-# --- Safepay (sandbox) online payment ------------------------------------
-
 @router.get("/safepay/config", response_model=schemas.SafepayConfig)
 def get_safepay_config():
-    """
-    Public config the frontend needs to render the Safepay button widget
-    client-side (Safepay's checkout is a JS button embedded on the page,
-    not a redirect - see @sfpy/checkout-components).
-    """
     return schemas.SafepayConfig(
         api_key=SAFEPAY_API_KEY,
         environment=SAFEPAY_ENVIRONMENT,
@@ -182,13 +163,6 @@ def confirm_safepay_payment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Called by the frontend after the Safepay button widget's `onPayment`
-    callback fires with a tracker token. We never trust that callback by
-    itself (anyone could call this endpoint with a made-up token) - we
-    re-verify the tracker directly with Safepay's API before marking the
-    order paid.
-    """
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -209,7 +183,6 @@ def confirm_safepay_payment(
     order.payment_status = "paid"  # type: ignore
     db.commit()
     db.refresh(order)
-
     return order
 
 
@@ -219,14 +192,7 @@ async def safepay_webhook(
     db: Session = Depends(get_db),
     x_sfpy_signature: str | None = Header(default=None),
 ):
-    """
-    Safepay calls this when a tracker's state changes (enable webhooks
-    for your endpoint in the Safepay sandbox dashboard's Developer tab).
-    The signature is verified before any order is touched, so this can't
-    be spoofed by posting directly to this URL.
-    """
     raw_body = await request.body()
-
     if not safepay.verify_webhook_signature(raw_body, x_sfpy_signature):
         raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
@@ -239,7 +205,6 @@ async def safepay_webhook(
 
     order = db.query(Order).filter(Order.safepay_tracker_token == tracker_token).first()
     if not order:
-        # Nothing to do - could be a webhook for an order we don't recognise.
         return {"status": "ignored"}
 
     if safepay.payment_is_successful(payload):
@@ -247,3 +212,70 @@ async def safepay_webhook(
         db.commit()
 
     return {"status": "ok"}
+
+
+@router.post("/{order_id}/safepay/session")
+def create_safepay_session(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    is_owner = bool(order.user_id == current_user.id)
+    is_admin = bool(current_user.role == "admin")
+    if not is_owner and not is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to pay for this order")
+
+    if not SAFEPAY_API_KEY:
+        raise HTTPException(status_code=500, detail="Safepay is not configured on the server.")
+
+    raw_price = getattr(order, "total_price", 0.0)
+    total_amount = float(raw_price or 0.0)
+    amount_in_paisas = int(round(total_amount * 100))
+
+    try:
+        response = httpx.post(
+            f"{SAFEPAY_API_BASE_URL}/order/v1/init",
+            headers={
+                "Content-Type": "application/json",
+                "X-SFPY-MERCHANT-SECRET": SAFEPAY_SECRET_KEY,
+            },
+            json={
+                "client": SAFEPAY_API_KEY,
+                "amount": amount_in_paisas,
+                "currency": CURRENCY.upper(),
+                "environment": SAFEPAY_ENVIRONMENT,
+            },
+            timeout=15.0,
+        )
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Could not reach Safepay: {exc}")
+
+    if response.status_code >= 400:
+        print(f"\n=== SAFEPAY ERROR ===\n{response.text}\n=====================\n")
+        raise HTTPException(status_code=502, detail=f"Safepay error: {response.text}")
+
+    data = response.json().get("data", response.json())
+    tracker_token = data.get("token") or data.get("tracker")
+    
+    if not tracker_token:
+        raise HTTPException(status_code=502, detail="Failed to retrieve tracker token from Safepay.")
+
+    order.safepay_tracker_token = tracker_token
+    db.commit()
+
+    checkout_base = (
+        "https://sandbox.api.getsafepay.com/components"
+        if SAFEPAY_ENVIRONMENT == "sandbox"
+        else "https://api.getsafepay.com/components"
+    )
+    
+    checkout_url = f"{checkout_base}?beacon={tracker_token}&env={SAFEPAY_ENVIRONMENT}&public_key={SAFEPAY_API_KEY}&source=website"
+
+    return {
+        "checkout_url": checkout_url,
+        "tracker_token": tracker_token
+    }

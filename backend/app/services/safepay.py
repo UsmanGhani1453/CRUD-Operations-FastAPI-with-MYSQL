@@ -1,13 +1,11 @@
 """
-Minimal Safepay (https://getsafepay.com) integration for sandbox payment
-testing.
+Minimal Safepay (https://getsafepay.com) integration for sandbox payment testing.
 
-Safepay's checkout is a client-side JS *button widget*
-(`@sfpy/checkout-components`), not a hosted page you redirect to - the
-widget itself calls Safepay's Order API when clicked, opens a Safepay
-overlay for card entry, and fires an `onPayment` callback in the browser
-once the customer approves. See
-https://github.com/getsafepay/safepay-checkout-components
+Safepay's checkout is a client-side JS *button widget* (`@sfpy/checkout-components`),
+not a hosted page you redirect to - the widget itself calls Safepay's Order API
+when clicked, opens a Safepay overlay for card entry, and fires an `onPayment`
+callback in the browser once the customer approves.
+See https://github.com/getsafepay/safepay-checkout-components
 
 Because that flow happens client-side, this backend module's job is:
 1. Expose the public sandbox config (`SAFEPAY_API_KEY`, environment,
@@ -19,8 +17,8 @@ Because that flow happens client-side, this backend module's job is:
    trust the browser-side callback alone, since anyone could call that
    confirm endpoint with a fake token otherwise.
 
-This targets Safepay's SANDBOX environment for testing - no real money
-moves. Get sandbox credentials at https://sandbox.api.getsafepay.com.
+This targets Safepay's SANDBOX environment for testing - no real money moves.
+Get sandbox credentials at https://sandbox.api.getsafepay.com.
 """
 from __future__ import annotations
 
@@ -33,9 +31,9 @@ import httpx
 from app.core.config import (
     SAFEPAY_API_BASE_URL,
     SAFEPAY_API_KEY,
+    SAFEPAY_SECRET_KEY,
     SAFEPAY_WEBHOOK_SECRET,
 )
-
 
 class SafepayError(RuntimeError):
     """Raised when Safepay's API returns an error or an unexpected shape."""
@@ -60,7 +58,10 @@ def verify_payment(tracker_token: str) -> dict[str, Any]:
     try:
         response = httpx.get(
             f"{SAFEPAY_API_BASE_URL}/order/v1/{tracker_token}",
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "X-SFPY-MERCHANT-SECRET": SAFEPAY_SECRET_KEY
+            },
             timeout=15.0,
         )
     except httpx.HTTPError as exc:
@@ -77,6 +78,7 @@ def verify_payment(tracker_token: str) -> dict[str, Any]:
 def payment_is_successful(verification_response: dict[str, Any]) -> bool:
     """
     Interpret a verify_payment()/webhook payload as paid or not paid.
+
     Safepay's docs show `state: "TRACKER_ENDED"` for a completed tracker
     (see https://safepay-docs.netlify.app/concepts/fetch-tracker/) -
     check what your sandbox actually returns and extend this if needed.

@@ -1,72 +1,77 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { api, extractErrorMessage } from "../api/client";
 
-const SCRIPT_SRC = "https://unpkg.com/@sfpy/checkout-components@0.1.0/dist/sfpy-checkout.js";
-
-let scriptLoadingPromise = null;
-
-function loadSafepayScript() {
-  if (window.safepay) return Promise.resolve();
-  if (scriptLoadingPromise) return scriptLoadingPromise;
-
-  scriptLoadingPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Safepay checkout script"));
-    document.head.appendChild(script);
-  });
-
-  return scriptLoadingPromise;
-}
-
-/**
- * Renders Safepay's hosted payment button (a Safepay-hosted overlay, not
- * a redirect - see https://github.com/getsafepay/safepay-checkout-components).
- *
- * `config` is the public { api_key, environment, currency } from
- * GET /orders/safepay/config. `onPayment(data)` fires once the customer
- * approves payment in the Safepay overlay - verify it server-side before
- * trusting it (see confirmSafepayPayment in api/resources.js).
- */
-export default function SafepayButton({ config, orderId, amount, onPayment, onCancel }) {
-  const containerRef = useRef(null);
+export default function SafepayButton({ orderId, config, onCancel }) {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
+  const handleCheckout = async () => {
+    setLoading(true);
+    setError("");
 
-    loadSafepayScript()
-      .then(() => {
-        if (cancelled || !containerRef.current || !window.safepay) return;
+    try {
+      // 1. Fetch tracker token from backend session endpoint
+      const response = await api.post(`/orders/${orderId}/safepay/session`);
+      const trackerToken = response.data.tracker_token;
 
-        // Clear any previous render (e.g. on re-mount / fast refresh).
-        containerRef.current.innerHTML = "";
+      if (!trackerToken) {
+        throw new Error("Could not retrieve payment tracker from server.");
+      }
 
-        window.safepay
-          .Button({
-            env: config.environment,
-            client: { [config.environment]: config.api_key },
-            style: { mode: "dark", size: "large", variant: "primary" },
-            orderId: String(orderId),
-            source: "website",
-            payment: { currency: config.currency, amount },
-            onPayment: (data) => onPayment(data),
-            onCancel: () => onCancel && onCancel(),
-          })
-          .render(containerRef.current);
-      })
-      .catch((err) => setError(err.message || "Couldn't load Safepay."));
+      // 2. Load Safepay Checkout SDK dynamically if missing
+      if (!window.safepay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://unpkg.com/@sfpy/checkout-components@0.1.0/dist/sfpy-checkout.js";
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Safepay payment script."));
+          document.head.appendChild(script);
+        });
+      }
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId, amount]);
+      // 3. Open Safepay's secure credit/debit card popup modal
+      const checkout = new window.safepay.Checkout({
+        env: config?.environment || "sandbox",
+        tracker: trackerToken,
+        apiKey: config?.api_key,
+        onComplete: (charge) => {
+          window.location.href = `/orders?justPlacedId=${orderId}`;
+        },
+        onCancelled: () => {
+          setLoading(false);
+        },
+      });
 
-  if (error) {
-    return <div className="alert alert-error">{error}</div>;
-  }
+      checkout.render();
+    } catch (err) {
+      setError(extractErrorMessage(err, "Could not open Safepay payment window."));
+      setLoading(false);
+    }
+  };
 
-  return <div ref={containerRef} />;
+  return (
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "10px" }}>
+      {error && <div className="alert alert-error">{error}</div>}
+      <button 
+        type="button" 
+        className="btn btn-primary btn-block" 
+        style={{ padding: "14px", fontSize: "15px", fontWeight: "bold" }}
+        onClick={handleCheckout}
+        disabled={loading}
+      >
+        {loading ? "Opening Secure Payment..." : "Pay via Safepay"}
+      </button>
+      {onCancel && (
+        <button 
+          type="button" 
+          className="btn btn-outline btn-block" 
+          onClick={onCancel}
+          disabled={loading}
+        >
+          Cancel Payment
+        </button>
+      )}
+    </div>
+  );
 }

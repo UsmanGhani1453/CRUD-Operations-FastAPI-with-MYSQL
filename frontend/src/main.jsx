@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+// frontend/src/main.jsx
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
@@ -11,13 +11,12 @@ import "./styles/storefront.css";
 import "./styles/admin.css";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>
+  // Removed <StrictMode> here so Safepay's iframe doesn't get destroyed on mount
+  <BrowserRouter>
+    <AuthProvider>
+      <CartProvider>
+        <App />
+      </CartProvider>
+    </AuthProvider>
+  </BrowserRouter>
 );

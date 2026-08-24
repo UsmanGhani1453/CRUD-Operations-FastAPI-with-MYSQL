@@ -2,10 +2,12 @@
 // currency units - see models.Product.price / schemas.ProductBase.price).
 // This formats them for display; swap the locale/currency to match your
 // deployment.
+// frontend/src/utils/money.js
+
 export function formatMoney(amount) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-PK", {
     style: "currency",
-    currency: "USD",
+    currency: "PKR",
     maximumFractionDigits: 0,
   }).format(amount);
 }
