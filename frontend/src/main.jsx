@@ -11,7 +11,6 @@ import "./styles/storefront.css";
 import "./styles/admin.css";
 
 createRoot(document.getElementById("root")).render(
-  // Removed <StrictMode> here so Safepay's iframe doesn't get destroyed on mount
   <BrowserRouter>
     <AuthProvider>
       <CartProvider>

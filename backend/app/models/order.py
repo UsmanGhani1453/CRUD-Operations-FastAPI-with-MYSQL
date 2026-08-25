@@ -19,14 +19,9 @@ class Order(Base):
     # fulfillment) on purpose - an order can be PENDING fulfillment while
     # already "paid", or CANCELLED after being paid (needing a refund).
     #
-    # Two ways an order gets marked paid:
-    #  1. Manually, by an admin (cash/transfer on delivery) via
-    #     PUT /orders/{id}/payment.
-    #  2. Online, via Safepay Checkout (sandbox) - a tracker token is
-    #     stored on the order when a checkout session is created, and the
-    #     order is marked paid when Safepay's webhook confirms the charge.
+    # Marked paid manually by an admin (cash/transfer on delivery) via
+    # PUT /orders/{id}/payment.
     payment_status = Column(String(20), default="unpaid", nullable=False)
-    safepay_tracker_token = Column(String(100), nullable=True)
 
     owner = relationship("User")
     items = relationship("OrderItem", back_populates="order", cascade="all,delete-orphan")

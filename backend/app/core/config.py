@@ -83,20 +83,5 @@ CORS_ALLOWED_ORIGINS = [
 # --- Currency ---------------------------------------------------------
 CURRENCY = os.getenv("CURRENCY", "PKR")
 
-# --- Frontend (used to build Safepay redirect/cancel URLs) -------------
+# --- Frontend base URL ---------------------------------------------------
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://127.0.0.1:5500")
-
-# --- Safepay (sandbox payment gateway) ---------------------------------
-# Get these from your Safepay Sandbox merchant dashboard:
-# https://sandbox.api.getsafepay.com -> Settings -> API Keys
-# SAFEPAY_ENVIRONMENT should be "sandbox" while testing, "production" when live.
-SAFEPAY_ENVIRONMENT = os.getenv("SAFEPAY_ENVIRONMENT", "sandbox").lower()
-SAFEPAY_API_KEY = os.getenv("SAFEPAY_API_KEY", "")  # merchant "client" key, e.g. sec_xxxxx
-SAFEPAY_SECRET_KEY = os.getenv("SAFEPAY_SECRET_KEY", "")  # used to verify webhook signatures
-SAFEPAY_WEBHOOK_SECRET = os.getenv("SAFEPAY_WEBHOOK_SECRET", "")
-
-SAFEPAY_API_BASE_URL = (
-    "https://sandbox.api.getsafepay.com"
-    if SAFEPAY_ENVIRONMENT != "production"
-    else "https://api.getsafepay.com"
-)

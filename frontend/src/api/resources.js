@@ -108,13 +108,3 @@ export function updatePaymentStatus(id, payment_status) {
   return api.put(`/orders/${id}/payment`, { payment_status }).then((res) => res.data);
 }
 
-// --- Safepay (sandbox) online payment ------------------------------------
-export function fetchSafepayConfig() {
-  return api.get("/orders/safepay/config").then((res) => res.data);
-}
-
-export function confirmSafepayPayment(orderId, trackerToken) {
-  return api
-    .post(`/orders/${orderId}/safepay/confirm`, { tracker_token: trackerToken })
-    .then((res) => res.data);
-}

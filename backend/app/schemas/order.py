@@ -56,21 +56,3 @@ class PaymentStatus(str, Enum):
 
 class PaymentStatusUpdate(BaseModel):
     payment_status: PaymentStatus
-
-
-class SafepayConfig(BaseModel):
-    """Public config the frontend needs to render the Safepay button widget."""
-
-    api_key: str
-    environment: str
-    currency: str
-
-
-class SafepayConfirmRequest(BaseModel):
-    """
-    Sent by the frontend after the Safepay button widget's onPayment
-    callback fires, so we can verify the payment server-side before
-    trusting it.
-    """
-
-    tracker_token: str
