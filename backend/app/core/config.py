@@ -52,7 +52,7 @@ def _require(name: str, dev_default: str | None = None) -> str:
 # --- Database ---------------------------------------------------------
 DATABASE_URL = _require(
     "DATABASE_URL",
-    dev_default="mysql+pymysql://root:password@localhost:3306/my_database",
+    dev_default="mysql+pymysql://1LPuqTsb1QVifGt.root:Mt7oMoAKfFWHNRCQ@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/test?ssl_verify_cert=true&ssl_verify_identity=true",
 )
 
 # --- Auth / JWT ---------------------------------------------------------
