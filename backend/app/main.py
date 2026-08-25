@@ -26,7 +26,7 @@ app.add_middleware(
 # plain static files at /uploads/<filename> (see products.upload_product_image).
 UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 # os.makedirs(UPLOADS_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+# app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 app.include_router(auth.router)
 app.include_router(users.router)
