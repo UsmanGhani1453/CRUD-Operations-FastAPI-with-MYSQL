@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api, extractErrorMessage } from "../api/client";
 
-export default function SafepayButton({ orderId, config, onCancel }) {
+export default function SafepayButton({ orderId, config, onPayment, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +36,13 @@ export default function SafepayButton({ orderId, config, onCancel }) {
         tracker: trackerToken,
         apiKey: config?.api_key,
         onComplete: (charge) => {
-          window.location.href = `/orders?justPlacedId=${orderId}`;
+          // Don't navigate away yet - the payment isn't trusted until the
+          // backend re-verifies it with Safepay (see onPayment in Checkout.jsx).
+          if (onPayment) {
+            onPayment(charge);
+          } else {
+            window.location.href = `/orders?justPlacedId=${orderId}`;
+          }
         },
         onCancelled: () => {
           setLoading(false);

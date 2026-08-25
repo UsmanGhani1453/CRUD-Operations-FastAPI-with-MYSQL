@@ -171,6 +171,16 @@ def confirm_safepay_payment(
     if order.payment_status == "paid":  # type: ignore
         return order
 
+    # The tracker token must be the one we issued for THIS order via
+    # /safepay/session - otherwise a user could take a tracker token from
+    # a payment they legitimately made on one order and replay it here to
+    # mark a different (e.g. more expensive) order as paid for free.
+    if not order.safepay_tracker_token or order.safepay_tracker_token != payload.tracker_token:  # type: ignore
+        raise HTTPException(
+            status_code=400,
+            detail="This tracker token does not match this order.",
+        )
+
     try:
         result = safepay.verify_payment(payload.tracker_token)
     except safepay.SafepayError as exc:
@@ -179,7 +189,20 @@ def confirm_safepay_payment(
     if not safepay.payment_is_successful(result):
         raise HTTPException(status_code=400, detail="Safepay has not confirmed this payment yet")
 
-    order.safepay_tracker_token = payload.tracker_token  # type: ignore
+    # Defense in depth: also make sure the amount Safepay actually
+    # confirmed matches what this order is expected to charge, so a paid
+    # tracker for a smaller amount can't be reused for a bigger order.
+    verified_data = result.get("data", result)
+    verified_amount = verified_data.get("amount")
+    if verified_amount is not None:
+        raw_price = getattr(order, "total_price", 0.0)
+        expected_amount = int(round(float(raw_price or 0.0) * 100))
+        if int(verified_amount) != expected_amount:
+            raise HTTPException(
+                status_code=400,
+                detail="Confirmed payment amount does not match the order total.",
+            )
+
     order.payment_status = "paid"  # type: ignore
     db.commit()
     db.refresh(order)
