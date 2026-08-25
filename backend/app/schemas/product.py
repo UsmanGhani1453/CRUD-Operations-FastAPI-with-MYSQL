@@ -8,6 +8,7 @@ class ProductBase(BaseModel):
     price: int = Field(gt=0)
     extra_data: Optional[Any] = None
     stock: int = Field(ge=0)
+    image_url: Optional[str] = Field(default=None, max_length=255)
 
 
 class ProductCreate(ProductBase):

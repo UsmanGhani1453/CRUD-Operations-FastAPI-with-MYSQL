@@ -1,5 +1,8 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import CORS_ALLOWED_ORIGINS
 from app.api.routes import auth, users, products, categories, employees, orders
@@ -18,6 +21,12 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allows all headers
 )
+
+# Uploaded product images are saved to disk here and served back out as
+# plain static files at /uploads/<filename> (see products.upload_product_image).
+UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 app.include_router(auth.router)
 app.include_router(users.router)

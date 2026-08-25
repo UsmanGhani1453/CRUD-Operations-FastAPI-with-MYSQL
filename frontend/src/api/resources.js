@@ -43,6 +43,16 @@ export function deleteProduct(id) {
   return api.delete(`/products/${id}`).then((res) => res.data);
 }
 
+export function uploadProductImage(file) {
+  const form = new FormData();
+  form.append("file", file);
+  return api
+    .post("/products/upload-image", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((res) => res.data);
+}
+
 // --- Categories -----------------------------------------------------------
 export function fetchCategories(params = {}) {
   return api.get("/categories/", { params }).then((res) => res.data);

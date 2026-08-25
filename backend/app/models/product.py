@@ -12,3 +12,4 @@ class Product(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     extra_data = Column(JSON, nullable=True)
     stock = Column(Integer, nullable=False, default=0)
+    image_url = Column(String(255), nullable=True)

@@ -32,10 +32,19 @@ export default function CartDrawer() {
           )}
           {lineItems.map(({ product, quantity }) => (
             <div className="cart-line" key={product.id}>
-              <div>
-                <div className="name">{product.name}</div>
-                <div className="unit">
-                  {formatMoney(product.price)} &middot; {product.stock} in stock
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="cart-line-thumb">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} />
+                  ) : (
+                    "HAAK"
+                  )}
+                </div>
+                <div>
+                  <div className="name">{product.name}</div>
+                  <div className="unit">
+                    {formatMoney(product.price)} &middot; {product.stock} in stock
+                  </div>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

@@ -78,7 +78,13 @@ function ProductCard({ product, onAdd }) {
 
   return (
     <div className="product-card">
-      <div className="thumb">HAAK</div>
+      <div className="thumb">
+        {product.image_url ? (
+          <img src={product.image_url} alt={product.name} />
+        ) : (
+          "HAAK"
+        )}
+      </div>
       <h3>{product.name}</h3>
       <div className={`stock-line ${lowStock ? "low" : ""}`}>
         {outOfStock ? "Out of stock" : lowStock ? `Only ${product.stock} left` : `${product.stock} in stock`}
