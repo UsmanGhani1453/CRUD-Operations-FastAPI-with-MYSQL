@@ -25,7 +25,7 @@ app.add_middleware(
 # Uploaded product images are saved to disk here and served back out as
 # plain static files at /uploads/<filename> (see products.upload_product_image).
 UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
-os.makedirs(UPLOADS_DIR, exist_ok=True)
+# os.makedirs(UPLOADS_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 app.include_router(auth.router)
