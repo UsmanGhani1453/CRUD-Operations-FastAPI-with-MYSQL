@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import Navbar from "./components/Navbar";
 import CartDrawer from "./components/CartDrawer";
 import { RequireAuth, RequireAdmin } from "./components/RouteGuards";
@@ -68,6 +69,8 @@ export default function App() {
           <span>Leather &amp; brass, made to order</span>
         </div>
       </footer>
+
+      <Analytics />
     </>
   );
 }
