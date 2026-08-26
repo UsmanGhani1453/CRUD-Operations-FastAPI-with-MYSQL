@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar";
 import CartDrawer from "./components/CartDrawer";
 import { RequireAuth, RequireAdmin } from "./components/RouteGuards";
@@ -20,6 +21,7 @@ export default function App() {
     <>
       <Navbar />
       <CartDrawer />
+      <SpeedInsights />
 
       <main style={{ flex: 1 }}>
         <Routes>
