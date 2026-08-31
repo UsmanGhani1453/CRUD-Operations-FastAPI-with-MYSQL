@@ -73,7 +73,7 @@ SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
 
 # --- CORS ---------------------------------------------------------
-_default_origins = "http://127.0.0.1:5500,http://localhost:5500"
+_default_origins = "https://haak-e-commerce.vercel.app"
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_origins).split(",")
